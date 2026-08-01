@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;font-family:'Public Sans',system-ui,sans-serif;background:oklch(97% 0.006 95);color:oklch(22% 0.01 95);-webkit-font-smoothing:antialiased}
+  a{color:oklch(45% 0.13 250)}
+  a:hover{color:oklch(38% 0.13 250)}
+  input,select{font-family:inherit}
+  *{box-sizing:border-box}
+</style>
+</helmet>
+
+<div style="min-height:100vh;width:100%;display:flex;flex-direction:column">
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:32px;background:linear-gradient(180deg, oklch(28% 0.06 250) 0%, oklch(28% 0.06 250) 320px, oklch(97% 0.006 95) 320px)">
+  <div style="width:100%;max-width:920px;display:grid;grid-template-columns:1fr 1fr;background:oklch(99% 0.002 95);border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden">
+    <div style="background:oklch(24% 0.055 250);color:white;padding:48px 40px;display:flex;flex-direction:column;gap:18px">
+      <div style="width:56px;height:56px;border-radius:50%;background:oklch(70% 0.13 75);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:oklch(24% 0.055 250)">KA</div>
+      <div style="font-size:13px;letter-spacing:0.06em;text-transform:uppercase;opacity:0.75">Government of Karnataka · Dept. of Agriculture</div>
+      <div style="font-size:28px;font-weight:700;line-height:1.25">PMKSY Watershed &amp; Other Interventions</div>
+      <div style="font-size:15px;line-height:1.6;opacity:0.85">Unified district reporting portal for PMKSY-WDC 2.0 and PMKSY-OI. Replaces the manual R-1 to R-12 spreadsheet returns with structured monthly submissions.</div>
+      <div style="margin-top:auto;font-size:12px;opacity:0.6;line-height:1.6">30 District Watershed Development Cells · 11 reporting formats · State-level consolidation</div>
+    </div>
+    <div style="padding:48px 40px;display:flex;flex-direction:column;gap:20px">
+      <div style="font-size:19px;font-weight:700;color:oklch(22% 0.01 95)">Sign in</div>
+      <div style="display:flex;gap:8px;background:oklch(94% 0.006 95);padding:4px;border-radius:8px">
+        <button style="{{ roleBtnStyleDistrict }}" onClick="{{ setRoleDistrict }}">District Officer</button>
+        <button style="{{ roleBtnStyleAdmin }}" onClick="{{ setRoleAdmin }}">State Admin</button>
+      </div>
+      <sc-if value="{{ loginIsDistrict }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font-size:12.5px;font-weight:600;color:oklch(48% 0.01 95)">District</label>
+          <select style="padding:11px 12px;border:1px solid oklch(85% 0.01 95);border-radius:7px;font-size:14.5px;background:white" value="{{ loginDistrict }}" onChange="{{ onLoginDistrictChange }}">
+            <sc-for list="{{ districtOptions }}" as="d" hint-placeholder-count="4">
+              <option value="{{ d }}">{{ d }}</option>
+            </sc-for>
+          </select>
+        </div>
+      </sc-if>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label style="font-size:12.5px;font-weight:600;color:oklch(48% 0.01 95)">Username</label>
+        <input style="padding:11px 12px;border:1px solid oklch(85% 0.01 95);border-radius:7px;font-size:14.5px" placeholder="{{ usernamePlaceholder }}" defaultValue="{{ usernamePlaceholder }}">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label style="font-size:12.5px;font-weight:600;color:oklch(48% 0.01 95)">Password</label>
+        <input type="password" style="padding:11px 12px;border:1px solid oklch(85% 0.01 95);border-radius:7px;font-size:14.5px" placeholder="••••••••" defaultValue="pmksy2026">
+      </div>
+      <button style="margin-top:8px;padding:13px;border:none;border-radius:7px;background:oklch(28% 0.06 250);color:white;font-size:15px;font-weight:700;cursor:pointer" onClick="{{ doLogin }}">Sign In</button>
+      <div style="font-size:12px;color:oklch(55% 0.01 95);text-align:center">Prototype — any credentials work.</div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDistrictDash }}" hint-placeholder-val="{{ false }}">
+<div style="background:oklch(24% 0.055 250);color:white;padding:18px 36px;display:flex;align-items:center;gap:16px">
+  <div style="width:36px;height:36px;border-radius:50%;background:oklch(70% 0.13 75);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:oklch(24% 0.055 250)">KA</div>
+  <div style="font-weight:700;font-size:15.5px">PMKSY Reporting Portal</div>
+  <div style="margin-left:8px;padding:4px 12px;background:rgba(255,255,255,0.14);border-radius:20px;font-size:12.5px;font-weight:600">{{ district }} District</div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span style="font-size:13px;opacity:0.8">District Watershed Officer</span>
+    <button style="padding:8px 16px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:white;border-radius:6px;font-size:13px;cursor:pointer" onClick="{{ logout }}">Log out</button>
+  </div>
+</div>
+<div style="padding:32px 36px;max-width:1180px;margin:0 auto;width:100%">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px">
+    <div>
+      <div style="font-size:22px;font-weight:700">Reporting Dashboard</div>
+      <div style="font-size:13.5px;color:oklch(48% 0.01 95);margin-top:2px">Formats below are configured by the State Admin. Fill each one for your district.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:white;border:1px solid oklch(88% 0.01 95);border-radius:7px">
+        <span style="font-size:12px;font-weight:600;color:oklch(48% 0.01 95)">Reporting Period</span>
+        <span style="font-size:14px;font-weight:700">{{ activePeriodLabel }}</span>
+      </div>
+      <button style="padding:9px 14px;border:1px solid oklch(85% 0.01 95);border-radius:7px;background:white;font-size:12.5px;font-weight:700;cursor:pointer" onClick="{{ exportDistrictExcel }}">Export All (Excel)</button>
+      <button style="padding:9px 14px;border:1px solid oklch(85% 0.01 95);border-radius:7px;background:white;font-size:12.5px;font-weight:700;cursor:pointer" onClick="{{ exportDistrictPdf }}">Export All (PDF)</button>
+    </div>
+  </div>
+  <div style="display:{{ periodBannerDisplay }};align-items:center;gap:10px;padding:11px 16px;background:oklch(94% 0.09 85);border:1px solid oklch(85% 0.1 80);border-radius:8px;margin-bottom:22px;font-size:13.5px;color:oklch(38% 0.12 75)">
+    🔒 This period is locked by the State Admin. Entries are read-only.
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+    <sc-for list="{{ dashboardFormats }}" as="f" hint-placeholder-count="6">
+      <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:oklch(48% 0.01 95)">{{ f.code }}</span>
+          <span style="font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;background:{{ f.statusBg }};color:{{ f.statusFg }}">{{ f.statusLabel }}</span>
+        </div>
+        <div style="font-size:15px;font-weight:700;line-height:1.35">{{ f.title }}</div>
+        <div style="font-size:12.5px;color:oklch(48% 0.01 95)">{{ f.entryCountLabel }}</div>
+        <button style="margin-top:6px;padding:10px;border:none;border-radius:7px;background:{{ f.btnBg }};color:{{ f.btnFg }};font-size:13.5px;font-weight:700;cursor:pointer" onClick="{{ f.onOpen }}">{{ f.btnLabel }}</button>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isReportForm }}" hint-placeholder-val="{{ false }}">
+<div style="background:oklch(24% 0.055 250);color:white;padding:18px 36px;display:flex;align-items:center;gap:16px">
+  <div style="width:36px;height:36px;border-radius:50%;background:oklch(70% 0.13 75);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:oklch(24% 0.055 250)">KA</div>
+  <div style="font-weight:700;font-size:15.5px">PMKSY Reporting Portal</div>
+  <div style="margin-left:8px;padding:4px 12px;background:rgba(255,255,255,0.14);border-radius:20px;font-size:12.5px;font-weight:600">{{ district }} District</div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span style="font-size:13px;opacity:0.8">District Watershed Officer</span>
+    <button style="padding:8px 16px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:white;border-radius:6px;font-size:13px;cursor:pointer" onClick="{{ logout }}">Log out</button>
+  </div>
+</div>
+<div style="padding:28px 36px;max-width:1180px;margin:0 auto;width:100%">
+  <a href="#" style="font-size:13px;font-weight:600;color:oklch(45% 0.13 250);text-decoration:none" onClick="{{ backToDistrictDash }}">← Back to dashboard</a>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:12px 0 6px">
+    <div>
+      <span style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:oklch(48% 0.01 95)">{{ currentFormat.code }} · {{ activePeriodLabel }}</span>
+      <div style="font-size:21px;font-weight:700;margin-top:2px">{{ currentFormat.title }}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;background:{{ currentStatus.bg }};color:{{ currentStatus.fg }}">{{ currentStatus.label }}</span>
+      <button style="padding:7px 12px;border:1px solid oklch(85% 0.01 95);border-radius:6px;background:white;font-size:12px;font-weight:700;cursor:pointer" onClick="{{ exportCurrentExcel }}">Export Excel</button>
+      <button style="padding:7px 12px;border:1px solid oklch(85% 0.01 95);border-radius:6px;background:white;font-size:12px;font-weight:700;cursor:pointer" onClick="{{ exportCurrentPdf }}">Export PDF</button>
+    </div>
+  </div>
+  <div style="padding:11px 16px;background:oklch(94% 0.02 250);border:1px solid oklch(85% 0.03 250);border-radius:8px;font-size:13px;color:oklch(35% 0.05 250);margin-bottom:20px">
+    Format uploaded by State Admin. Add one project/component entry at a time for {{ district }} district.
+  </div>
+
+  <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:13.5px;min-width:1400px">
+      <thead>
+        <sc-if value="{{ isR1 }}" hint-placeholder-val="{{ false }}">
+          <tr style="background:oklch(96% 0.006 95)">
+            <th rowSpan="2" style="text-align:left;padding:10px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap;vertical-align:bottom">Project Name</th>
+            <th rowSpan="2" style="text-align:left;padding:10px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap;vertical-align:bottom">Block</th>
+            <th colSpan="6" style="{{ r1GroupHeaderStyle }}">Water Conservation &amp; Rainwater Harvesting — Newly Constructed</th>
+            <th colSpan="6" style="{{ r1GroupHeaderStyle }}">Renovation of Traditional (Old) Water Bodies / Tanks Rejuvenated</th>
+            <th colSpan="5" style="{{ r1GroupHeaderStyle }}">Soil &amp; Moisture Conservation Measures (Watershed Development)</th>
+            <th colSpan="2" style="{{ r1GroupHeaderStyle }}">Intensive Horticulture / Afforestation</th>
+            <th rowSpan="2" style="{{ r1SubHeaderStyle }};border-left:1px solid oklch(90% 0.006 95);vertical-align:bottom">Awareness Programme (Nos)</th>
+            <th colSpan="2" style="{{ r1GroupHeaderStyle }}">Springshed Rejuvenation</th>
+            <th rowSpan="2" style="padding:12px 14px;border-bottom:1px solid oklch(88% 0.01 95)"></th>
+          </tr>
+          <tr style="background:oklch(96% 0.006 95)">
+            <sc-for list="{{ r1SubColumns }}" as="col" hint-placeholder-count="22">
+              <th style="{{ r1SubHeaderStyle }}">{{ col.label }}</th>
+            </sc-for>
+          </tr>
+        </sc-if>
+        <sc-if value="{{ !isR1 }}" hint-placeholder-val="{{ true }}">
+          <tr style="background:oklch(96% 0.006 95)">
+            <sc-for list="{{ currentFormat.columns }}" as="col" hint-placeholder-count="4">
+              <th style="text-align:left;padding:12px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap">{{ col.label }}</th>
+            </sc-for>
+            <th style="padding:12px 14px;border-bottom:1px solid oklch(88% 0.01 95)"></th>
+          </tr>
+        </sc-if>
+      </thead>
+      <tbody>
+        <sc-for list="{{ currentEntries }}" as="entry" hint-placeholder-count="2">
+          <tr style="border-bottom:1px solid oklch(92% 0.006 95)">
+            <sc-for list="{{ entry.cells }}" as="cell" hint-placeholder-count="4">
+              <td style="padding:11px 14px;color:oklch(28% 0.01 95)">{{ cell.val }}</td>
+            </sc-for>
+            <td style="padding:11px 14px;text-align:right;white-space:nowrap">
+              <button style="{{ entry.editBtnStyle }}" onClick="{{ entry.onEdit }}">Edit</button>
+              <button style="{{ entry.deleteBtnStyle }}" onClick="{{ entry.onDelete }}">Remove</button>
+            </td>
+          </tr>
+        </sc-for>
+        <sc-if value="{{ noEntries }}" hint-placeholder-val="{{ false }}">
+          <tr><td colspan="12" style="padding:26px;text-align:center;color:oklch(55% 0.01 95);font-size:13.5px">No entries yet. Add your first project/component below.</td></tr>
+        </sc-if>
+      </tbody>
+    </table>
+  </div>
+
+  <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ showAddForm }}" hint-placeholder-val="{{ false }}">
+      <div style="background:white;border:1px solid oklch(85% 0.03 250);border-radius:10px;padding:20px;margin-top:16px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:14px">{{ addFormTitle }}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+          <sc-for list="{{ draftFields }}" as="field" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <label style="font-size:12px;font-weight:600;color:oklch(48% 0.01 95)">{{ field.label }}</label>
+              <input type="{{ field.inputType }}" style="padding:9px 11px;border:1px solid oklch(85% 0.01 95);border-radius:6px;font-size:13.5px" value="{{ field.value }}" onChange="{{ field.onChange }}">
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button style="padding:10px 18px;border:none;border-radius:7px;background:oklch(28% 0.06 250);color:white;font-size:13.5px;font-weight:700;cursor:pointer" onClick="{{ saveEntryDraft }}">{{ saveEntryLabel }}</button>
+          <button style="padding:10px 18px;border:1px solid oklch(85% 0.01 95);border-radius:7px;background:white;color:oklch(40% 0.01 95);font-size:13.5px;font-weight:600;cursor:pointer" onClick="{{ cancelAddForm }}">Cancel</button>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showAddButtonRow }}" hint-placeholder-val="{{ true }}">
+      <button style="margin-top:16px;padding:11px 18px;border:1.5px dashed oklch(70% 0.03 250);border-radius:8px;background:transparent;color:oklch(40% 0.1 250);font-size:13.5px;font-weight:700;cursor:pointer" onClick="{{ openAddForm }}">+ Add Entry</button>
+    </sc-if>
+    <div style="display:flex;gap:12px;margin-top:26px;padding-top:20px;border-top:1px solid oklch(90% 0.006 95)">
+      <button style="padding:12px 22px;border:1px solid oklch(85% 0.01 95);border-radius:7px;background:white;color:oklch(30% 0.01 95);font-size:14px;font-weight:700;cursor:pointer" onClick="{{ saveDraft }}">Save Draft</button>
+      <button style="padding:12px 22px;border:none;border-radius:7px;background:oklch(45% 0.11 150);color:white;font-size:14px;font-weight:700;cursor:pointer" onClick="{{ submitReport }}">Submit Report</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ cannotEdit }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:20px;padding:13px 16px;background:oklch(95% 0.006 95);border:1px solid oklch(88% 0.01 95);border-radius:8px;font-size:13px;color:oklch(48% 0.01 95)">{{ lockedNote }}</div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdminDash }}" hint-placeholder-val="{{ false }}">
+<div style="background:oklch(24% 0.055 250);color:white;padding:18px 36px;display:flex;align-items:center;gap:16px">
+  <div style="width:36px;height:36px;border-radius:50%;background:oklch(70% 0.13 75);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:oklch(24% 0.055 250)">KA</div>
+  <div style="font-weight:700;font-size:15.5px">PMKSY Reporting Portal</div>
+  <div style="margin-left:8px;padding:4px 12px;background:rgba(255,255,255,0.14);border-radius:20px;font-size:12.5px;font-weight:600">State Admin</div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span style="font-size:13px;opacity:0.8">Dept. of Agriculture, Karnataka</span>
+    <button style="padding:8px 16px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:white;border-radius:6px;font-size:13px;cursor:pointer" onClick="{{ logout }}">Log out</button>
+  </div>
+</div>
+<div style="padding:28px 36px;max-width:1360px;margin:0 auto;width:100%">
+  <div style="font-size:22px;font-weight:700;margin-bottom:4px">State Consolidated Dashboard</div>
+  <div style="font-size:13.5px;color:oklch(48% 0.01 95);margin-bottom:22px">Track district submissions across all 11 formats and generate consolidated reports.</div>
+
+  <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;padding:18px 20px;margin-bottom:22px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+      <div style="font-size:14.5px;font-weight:700">Reporting Periods</div>
+      <button style="padding:8px 14px;border:1px solid oklch(85% 0.03 250);border-radius:6px;background:white;color:oklch(40% 0.1 250);font-size:13px;font-weight:700;cursor:pointer" onClick="{{ toggleCreatePeriod }}">{{ createPeriodBtnLabel }}</button>
+    </div>
+    <sc-if value="{{ showCreatePeriod }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px;margin-bottom:14px">
+        <input style="flex:1;max-width:260px;padding:9px 12px;border:1px solid oklch(85% 0.01 95);border-radius:6px;font-size:13.5px" placeholder="e.g. May 2026" value="{{ newPeriodLabel }}" onChange="{{ onNewPeriodLabelChange }}">
+        <button style="padding:9px 16px;border:none;border-radius:6px;background:oklch(28% 0.06 250);color:white;font-size:13px;font-weight:700;cursor:pointer" onClick="{{ createPeriod }}">Create</button>
+      </div>
+    </sc-if>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <sc-for list="{{ periodPills }}" as="p" hint-placeholder-count="3">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;border-radius:20px;background:{{ p.pillBg }};border:1px solid {{ p.pillBorder }}">
+          <span style="font-size:13px;font-weight:700;color:{{ p.pillFg }}">{{ p.label }}</span>
+          <span style="font-size:11px;font-weight:600;color:{{ p.pillFg }};opacity:0.75">{{ p.statusLabel }}</span>
+          <button style="{{ p.toggleBtnStyle }}" onClick="{{ p.onToggle }}">{{ p.toggleLabel }}</button>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:16px;margin-bottom:22px">
+    <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;padding:20px;display:flex;gap:20px;align-items:center">
+      <div style="width:150px;height:150px;border-radius:50%;background:{{ tableWiseConic }};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;margin-bottom:10px">Entries by Table</div>
+        <div style="display:flex;flex-direction:column;gap:6px;max-height:170px;overflow-y:auto">
+          <sc-for list="{{ tableWiseLegend }}" as="leg" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:10px;height:10px;border-radius:2px;background:{{ leg.swatch }};flex-shrink:0"></span>
+              <span style="flex:1;color:oklch(30% 0.01 95);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ leg.label }}</span>
+              <span style="color:oklch(50% 0.01 95);white-space:nowrap">{{ leg.valueLabel }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;padding:20px;display:flex;gap:20px;align-items:center">
+      <div style="width:150px;height:150px;border-radius:50%;background:{{ districtWiseConic }};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;margin-bottom:10px">Entries by District</div>
+        <div style="display:flex;flex-direction:column;gap:6px;max-height:170px;overflow-y:auto">
+          <sc-for list="{{ districtWiseLegend }}" as="leg" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+              <span style="width:10px;height:10px;border-radius:2px;background:{{ leg.swatch }};flex-shrink:0"></span>
+              <span style="flex:1;color:oklch(30% 0.01 95);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ leg.label }}</span>
+              <span style="color:oklch(50% 0.01 95);white-space:nowrap">{{ leg.valueLabel }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;padding:20px;margin-bottom:22px;overflow-x:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+      <div style="font-size:14.5px;font-weight:700">Submission Status — {{ activePeriodLabel }}</div>
+      <div style="display:flex;gap:14px;font-size:11.5px;color:oklch(48% 0.01 95)">
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:oklch(90% 0.09 150);margin-right:5px"></span>Submitted</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:oklch(94% 0.09 85);margin-right:5px"></span>Draft</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:oklch(94% 0.005 95);margin-right:5px"></span>Not started</span>
+      </div>
+    </div>
+    <table style="border-collapse:collapse;font-size:12px;min-width:100%">
+      <thead>
+        <tr>
+          <th style="position:sticky;left:0;background:white;text-align:left;padding:8px 10px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95)">District</th>
+          <sc-for list="{{ formatCodes }}" as="fc" hint-placeholder-count="11">
+            <th style="text-align:center;padding:8px 6px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);cursor:pointer;white-space:nowrap" onClick="{{ fc.onClick }}" title="{{ fc.title }}">{{ fc.code }}</th>
+          </sc-for>
+        </tr>
+      </thead>
+      <tbody>
+        <sc-for list="{{ matrixRows }}" as="row" hint-placeholder-count="10">
+          <tr>
+            <td style="position:sticky;left:0;background:white;padding:7px 10px;font-weight:600;border-bottom:1px solid oklch(94% 0.006 95);white-space:nowrap">{{ row.district }}</td>
+            <sc-for list="{{ row.cells }}" as="cell" hint-placeholder-count="11">
+              <td style="padding:5px;border-bottom:1px solid oklch(94% 0.006 95);text-align:center">
+                <div style="width:28px;height:22px;border-radius:4px;background:{{ cell.bg }};margin:0 auto;cursor:pointer" onClick="{{ cell.onClick }}" title="{{ cell.title }}"></div>
+              </td>
+            </sc-for>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;padding:20px">
+    <div style="font-size:14.5px;font-weight:700;margin-bottom:14px">Consolidated Reports by Format</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ formatSummaryRows }}" as="f" hint-placeholder-count="11">
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid oklch(92% 0.006 95);border-radius:8px">
+          <span style="font-size:11px;font-weight:700;color:oklch(48% 0.01 95);width:170px;flex-shrink:0">{{ f.code }}</span>
+          <span style="flex:1;font-size:13.5px;font-weight:600">{{ f.title }}</span>
+          <span style="font-size:12px;color:oklch(48% 0.01 95)">{{ f.submittedCountLabel }}</span>
+          <a href="#" style="font-size:12.5px;font-weight:700;text-decoration:none" onClick="{{ f.onView }}">View</a>
+          <button style="{{ f.exportBtnStyle }}" onClick="{{ f.onExportExcel }}">Excel</button>
+          <button style="{{ f.exportBtnStyle }}" onClick="{{ f.onExportPdf }}">PDF</button>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isAdminReport }}" hint-placeholder-val="{{ false }}">
+<div style="background:oklch(24% 0.055 250);color:white;padding:18px 36px;display:flex;align-items:center;gap:16px">
+  <div style="width:36px;height:36px;border-radius:50%;background:oklch(70% 0.13 75);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:oklch(24% 0.055 250)">KA</div>
+  <div style="font-weight:700;font-size:15.5px">PMKSY Reporting Portal</div>
+  <div style="margin-left:8px;padding:4px 12px;background:rgba(255,255,255,0.14);border-radius:20px;font-size:12.5px;font-weight:600">State Admin</div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <button style="padding:8px 16px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:white;border-radius:6px;font-size:13px;cursor:pointer" onClick="{{ logout }}">Log out</button>
+  </div>
+</div>
+<div style="padding:28px 36px;max-width:1360px;margin:0 auto;width:100%">
+  <a href="#" style="font-size:13px;font-weight:600;color:oklch(45% 0.13 250);text-decoration:none" onClick="{{ backToAdminDash }}">← Back to state dashboard</a>
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:12px 0 20px">
+    <div>
+      <span style="font-size:11.5px;font-weight:700;letter-spacing:0.04em;color:oklch(48% 0.01 95)">{{ currentFormat.code }} · {{ activePeriodLabel }} · Consolidated</span>
+      <div style="font-size:21px;font-weight:700;margin-top:2px">{{ currentFormat.title }}</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button style="padding:10px 16px;border:1px solid oklch(85% 0.01 95);border-radius:7px;background:white;font-size:13px;font-weight:700;cursor:pointer" onClick="{{ exportCurrentExcel }}">Export Excel</button>
+      <button style="padding:10px 16px;border:1px solid oklch(85% 0.01 95);border-radius:7px;background:white;font-size:13px;font-weight:700;cursor:pointer" onClick="{{ exportCurrentPdf }}">Export PDF</button>
+    </div>
+  </div>
+  <div style="background:white;border:1px solid oklch(88% 0.01 95);border-radius:10px;overflow:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:600px">
+      <thead>
+        <sc-if value="{{ isR1 }}" hint-placeholder-val="{{ false }}">
+          <tr style="background:oklch(96% 0.006 95)">
+            <th rowSpan="2" style="text-align:left;padding:10px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap;vertical-align:bottom">District</th>
+            <th rowSpan="2" style="text-align:left;padding:10px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap;vertical-align:bottom">Project Name</th>
+            <th rowSpan="2" style="text-align:left;padding:10px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap;vertical-align:bottom">Block</th>
+            <th colSpan="6" style="{{ r1GroupHeaderStyle }}">Water Conservation &amp; Rainwater Harvesting — Newly Constructed</th>
+            <th colSpan="6" style="{{ r1GroupHeaderStyle }}">Renovation of Traditional (Old) Water Bodies / Tanks Rejuvenated</th>
+            <th colSpan="5" style="{{ r1GroupHeaderStyle }}">Soil &amp; Moisture Conservation Measures (Watershed Development)</th>
+            <th colSpan="2" style="{{ r1GroupHeaderStyle }}">Intensive Horticulture / Afforestation</th>
+            <th rowSpan="2" style="{{ r1SubHeaderStyle }};border-left:1px solid oklch(90% 0.006 95);vertical-align:bottom">Awareness Programme (Nos)</th>
+            <th colSpan="2" style="{{ r1GroupHeaderStyle }}">Springshed Rejuvenation</th>
+          </tr>
+          <tr style="background:oklch(96% 0.006 95)">
+            <sc-for list="{{ r1SubColumns }}" as="col" hint-placeholder-count="21">
+              <th style="{{ r1SubHeaderStyle }}">{{ col.label }}</th>
+            </sc-for>
+          </tr>
+        </sc-if>
+        <sc-if value="{{ !isR1 }}" hint-placeholder-val="{{ true }}">
+          <tr style="background:oklch(96% 0.006 95)">
+            <th style="text-align:left;padding:11px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95)">District</th>
+            <sc-for list="{{ currentFormat.columns }}" as="col" hint-placeholder-count="4">
+              <th style="text-align:left;padding:11px 14px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap">{{ col.label }}</th>
+            </sc-for>
+          </tr>
+        </sc-if>
+      </thead>
+      <tbody>
+        <sc-for list="{{ consolidatedGroups }}" as="grp" hint-placeholder-count="6">
+          <sc-for list="{{ grp.rows }}" as="r" hint-placeholder-count="2">
+            <tr style="border-bottom:1px solid oklch(94% 0.006 95);background:{{ r.rowBg }}">
+              <td style="padding:9px 14px;color:oklch(28% 0.01 95);font-weight:{{ r.districtWeight }}">{{ r.districtLabel }}</td>
+              <sc-for list="{{ r.cells }}" as="cell" hint-placeholder-count="4">
+                <td style="padding:9px 14px;color:oklch(28% 0.01 95);font-weight:{{ r.districtWeight }}">{{ cell.val }}</td>
+              </sc-for>
+            </tr>
+          </sc-for>
+        </sc-for>
+        <tr style="background:oklch(95% 0.006 95)">
+          <td style="padding:11px 14px;font-weight:800">Grand Total</td>
+          <sc-for list="{{ grandTotalCells }}" as="cell" hint-placeholder-count="4">
+            <td style="padding:11px 14px;font-weight:800">{{ cell.val }}</td>
+          </sc-for>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-size:12px;color:oklch(55% 0.01 95);margin-top:10px">{{ consolidatedFootnote }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;bottom:26px;right:26px;background:oklch(24% 0.055 250);color:white;padding:13px 20px;border-radius:8px;font-size:13.5px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.25);z-index:999">{{ toast }}</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const DISTRICTS = ["Bagalkot","Bengaluru","Belagavi","Ballari","Vijayanagar","Bidar","Vijayapura","Chamarajanagar","Chikkaballapura","Chikkamagaluru","Chitradurga","Dakshina Kannada","Davangere","Dharwad","Gadag","Kalburgi","Hassan","Haveri","Kodagu","Kolar","Koppal","Mandya","Mysuru","Raichur","Ramanagara","Shivamogga","Tumkur","Udupi","Uttara Kannada","Yadgir"];
+
+const FORMATS = [
+  {id:'r1', code:'Physical Achievements', title:'District-wise Physical Achievements — Jal Shakthi Abhiyan (PMKSY-WDC 2.0)', columns:[
+    {key:'project', label:'Project Name', type:'text'},
+    {key:'block', label:'Block', type:'text'},
+    {key:'amritNew', label:'Amrit Sarovar/Nala Bund/Gokatte (Nos)', type:'number'},
+    {key:'checkDamNew', label:'Check Dam/Vented Dam (Nos)', type:'number'},
+    {key:'farmPondNew', label:'Farm Pond (Nos)', type:'number'},
+    {key:'percolationNew', label:'Percolation Tank/Mini Percolation Tank etc (Nos)', type:'number'},
+    {key:'rainwaterRecharge', label:'Rainwater Recharge Structures (Gully Plugs, Open Well Recharge, Sand Filter) (Nos)', type:'number'},
+    {key:'otherWaterNew', label:'Other Water Conservation Structures (Nos)', type:'number'},
+    {key:'amritRenov', label:'Amrit Sarovar/Nala Bund/Gokatte (Nos)', type:'number'},
+    {key:'checkDamRenov', label:'Check Dam/Vented Dam etc (Nos)', type:'number'},
+    {key:'farmPondRenov', label:'Farm Pond (Nos)', type:'number'},
+    {key:'percolationRenov', label:'Percolation Tank/Mini Percolation Tank etc (Nos)', type:'number'},
+    {key:'groundwaterRecharge', label:'Ground Water Recharge Structure (Nos)', type:'number'},
+    {key:'otherTraditionalRestored', label:'Traditional Water Bodies Restored (Nos)', type:'number'},
+    {key:'staggeredTrenches', label:'Staggered Trenches (ha)', type:'number'},
+    {key:'benchTerracing', label:'Bench Terracing (ha)', type:'number'},
+    {key:'contourBunding', label:'Contour Bunding (ha)', type:'number'},
+    {key:'gradedBunding', label:'Graded Bunding (ha)', type:'number'},
+    {key:'otherWatershedActivities', label:'Other Watershed Activities (Trench cum Bund etc) (ha)', type:'number'},
+    {key:'areaPlantation', label:'Area Brought Under Plantation (Horticulture/Afforestation) (ha)', type:'number'},
+    {key:'othersAfforestation', label:'Others (Intensive Afforestation - Nurseries etc) (in lakhs)', type:'number'},
+    {key:'awareness', label:'Awareness Programme (Jatha, Beedi Nataka, Grama Sabha, Trainings, Kisan Melas etc) (Nos)', type:'number'},
+    {key:'springshedActivities', label:'Activity Related to Springshed Rejuvenation (Total No. of Activities Taken)', type:'number'},
+    {key:'springsRejuvenated', label:'Number of Springs Rejuvenated (Nos)', type:'number'},
+  ]},
+  {id:'r2', code:'OOMF', title:'Output Outcome Monitoring Framework (OOMF) under PMKSY-WDC 2.0', columns:[
+    {key:'indicator', label:'Indicator', type:'text'},
+    {key:'target', label:'Target', type:'number'},
+    {key:'achievement', label:'Achievement', type:'number'},
+  ]},
+  {id:'r3', code:'Component Progress', title:'PMKSY-WDC 2.0 Componentwise Physical and Financial Progress', columns:[
+    {key:'component', label:'Component', type:'text'},
+    {key:'physicalPct', label:'Physical Progress (%)', type:'number'},
+    {key:'financialLakhs', label:'Financial Progress (Rs Lakhs)', type:'number'},
+  ]},
+  {id:'r4', code:'Financial Progress', title:'PMKSY-WDC 2.0 Financial Progress (From Inception to Till Reporting Month)', columns:[
+    {key:'project', label:'Project Name', type:'text'},
+    {key:'sanctioned', label:'Sanctioned Amount (Rs L)', type:'number'},
+    {key:'released', label:'Released (Rs L)', type:'number'},
+    {key:'expenditure', label:'Expenditure (Rs L)', type:'number'},
+    {key:'balance', label:'Balance (Rs L)', type:'number'},
+  ]},
+  {id:'r5', code:'VC Live Financial', title:'VC Live 2025-26 Project and Component Wise Financial Progress under PMKSY-WDC 2.0 (Rs in Lakhs)', columns:[
+    {key:'project', label:'Project', type:'text'},
+    {key:'component', label:'Component', type:'text'},
+    {key:'released', label:'Amount Released (Rs L)', type:'number'},
+    {key:'expenditure', label:'Expenditure (Rs L)', type:'number'},
+  ]},
+  {id:'r6', code:'SCP/TSP', title:'PMKSY-WDC 2.0 Componentwise-SCP / TSP', columns:[
+    {key:'component', label:'Component', type:'text'},
+    {key:'scp', label:'SCP Allocation (Rs L)', type:'number'},
+    {key:'tsp', label:'TSP Allocation (Rs L)', type:'number'},
+  ]},
+  {id:'r7', code:'OI Physical/Financial', title:'VC Live PMKSY-OI: Componentwise Physical & Financial Progress as on Date', columns:[
+    {key:'component', label:'Component', type:'text'},
+    {key:'physicalPct', label:'Physical (%)', type:'number'},
+    {key:'financialLakhs', label:'Financial (Rs L)', type:'number'},
+  ]},
+  {id:'r8', code:'OI Treasury', title:'PMKSY-OI Treasury Progress and Balance Funds with Districts', columns:[
+    {key:'scheme', label:'Scheme', type:'text'},
+    {key:'released', label:'Funds Released (Rs L)', type:'number'},
+    {key:'utilized', label:'Funds Utilized (Rs L)', type:'number'},
+  ]},
+  {id:'r9', code:'OI SCSP/TSP', title:'PMKSY-Other Interventions (PMKSY-OI) — SCSP/TSP', columns:[
+    {key:'component', label:'Component', type:'text'},
+    {key:'scsp', label:'SCSP Amount (Rs L)', type:'number'},
+    {key:'tsp', label:'TSP Amount (Rs L)', type:'number'},
+  ]},
+  {id:'r10', code:'MGNREGA Convergence', title:'Convergence of PMKSY-WDC 2.0 Programme with MGNREGA, PMKSY-OI, RKVY, ABY & Other Programmes', columns:[
+    {key:'scheme', label:'Scheme Name', type:'text'},
+    {key:'activities', label:'No. of Activities', type:'number'},
+    {key:'amount', label:'Amount Converged (Rs L)', type:'number'},
+  ]},
+  {id:'r11', code:'Protected Area Convergence', title:'Convergence of PMKSY-WDC 2.0 Programme with MGNREGA in WDC 2.0 Protected Areas Only', columns:[
+    {key:'activity', label:'Activity', type:'text'},
+    {key:'works', label:'No. of Works', type:'number'},
+    {key:'persondays', label:'Persondays Generated', type:'number'},
+  ]},
+];
+
+const REAL_R1_DATA = {
+  "Bagalkot": [{project:"Bagalkot -WDC-1/2021-22",block:"Hungund I",amritNew:0,checkDamNew:3,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Bagalkot -WDC-2/2022-23",block:"Badami II",amritNew:0,checkDamNew:6,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Bengaluru": [{project:"Bengaluru-WDC-1/2021-22",block:"Nelamangala I",amritNew:2,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Bangalore-WDC-2/2024-25",block:"Doddaballapura IV",amritNew:8,checkDamNew:14,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:12.66,areaPlantation:0,othersAfforestation:0,awareness:12,springshedActivities:0,springsRejuvenated:0}],
+  "Belagavi": [{project:"Belagavi-WDC-1/2021-22",block:"Ramdurga I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Belagavi-WDC-2/2021-22",block:"Bailhongal I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Belagavi -WDC-3/2021-22",block:"Chikodi I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Belagavi -WDC-3/2021-22",block:"Chikodi Model",amritNew:4,checkDamNew:11,farmPondNew:0,percolationNew:2,rainwaterRecharge:0,otherWaterNew:6,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Belagavi -WDC-4/2022-23",block:"Chikkodi (Nippani) II",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Ballari": [{project:"Ballari-WDC-2/2021-22",block:"Ballari I",amritNew:1,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:2,springshedActivities:0,springsRejuvenated:0}],
+  "Vijayanagar": [{project:"Vijayanagar-WDC-1/2021-22",block:"Kottur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:23,springshedActivities:0,springsRejuvenated:0}],
+  "Bidar": [{project:"Bidar-WDC-1/2021-22",block:"Aurad I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Bidar-WDC-2/2021-22",block:"Basavakalyana I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Bidar-WDC-3/2025-26",block:"Bhalki IV",amritNew:0,checkDamNew:3,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Vijayapura": [{project:"Vijayapura-WDC-1/2021-22",block:"Sindagi I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Vijayapura-WDC-2/2021-22",block:"Indi I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Vijayapura-WDC-4/2025-26",block:"Muddebihal IV",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:1248.5,areaPlantation:711.82,othersAfforestation:0,awareness:36,springshedActivities:0,springsRejuvenated:0}],
+  "Chamarajanagar": [{project:"Chamarajanagar-WDC-1/2021-22",block:"Gundlupet I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Chamarajanagar-WDC-2/2021-22",block:"Kollegala I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Chamarajnagara-WDC-3/2025-26",block:"Gundlupet IV",amritNew:0,checkDamNew:3,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:1,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:18,areaPlantation:0,othersAfforestation:0,awareness:10,springshedActivities:0,springsRejuvenated:0}],
+  "Chikkaballapura": [{project:"Chikkaballapura-WDC-1/2021-22",block:"Chikkballapura I",amritNew:1,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Chikkaballapura-WDC-2/2021-22",block:"Chintamani I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Chikkaballapura-WDC-3/2024-25",block:"Gowribidanoor IV",amritNew:1,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:313,othersAfforestation:0,awareness:48,springshedActivities:0,springsRejuvenated:0}],
+  "Chikkamagaluru": [{project:"Chikkamagaluru-WDC-1/2021-22",block:"Ajjampura I",amritNew:1,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Chikkamagaluru-WDC-2/2021-22",block:"Kadur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Chitradurga": [{project:"Chitradurga-WDC-1/2021-22",block:"Hiriyur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Chitradurga-WDC-2/2021-22",block:"Holalkere I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Dakshina Kannada": [{project:"Dakshina Kannada-WDC-1/2021-22",block:"Belthangady I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Dakshina Kannada-WDC-2/2021-22",block:"Bantwal I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Davangere": [{project:"Davangere-WDC-1/2021-22",block:"Jagaluru I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Davangere-WDC-2/2021-22",block:"Channagiri I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Dharwad": [{project:"Dharwad-WDC-1/2021-22",block:"Dharwad I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Dharwad-WDC-2/2025-26",block:"Navalgund IV",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Gadag": [{project:"Gadag-WDC-1/2021-22",block:"Mundaragi I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Gadag-WDC-4/2025-26",block:"Shirahatti IV",amritNew:4,checkDamNew:6,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:42,springshedActivities:0,springsRejuvenated:0}],
+  "Kalburgi": [{project:"Kalburgi-WDC-1/2021-22",block:"Aland I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Kalburgi-WDC-1/2021-22",block:"Aland Model",amritNew:0,checkDamNew:26,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Kalburgi-WDC-2/2021-22",block:"Jewaragi I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Kalaburagi-WDC-3/2025-26",block:"Afzalpur IV",amritNew:4,checkDamNew:2,farmPondNew:14,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:284,areaPlantation:0,othersAfforestation:0,awareness:24,springshedActivities:0,springsRejuvenated:0}],
+  "Hassan": [{project:"Hassan-WDC-1/2021-22",block:"Arasikere I",amritNew:0,checkDamNew:9,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:7,othersAfforestation:0,awareness:2,springshedActivities:0,springsRejuvenated:0},{project:"Hassan-WDC-2/2021-22",block:"Belur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:4,othersAfforestation:0,awareness:2,springshedActivities:0,springsRejuvenated:0}],
+  "Haveri": [{project:"Haveri-WDC-1/2021-22",block:"Haveri I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:116,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Haveri-WDC-2/2021-22",block:"Hangal I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Haveri-WDC-3/2021-22",block:"Shiggaon I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Haveri-WDC-4/2021-22",block:"Byadagi I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Haveri-WDC-5/2021-22",block:"Rattihalli I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Haveri-WDC-6/2021-22",block:"Hirekerur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Haveri-WDC-7/2021-22",block:"Ranibennur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Kodagu": [{project:"Kodagu-WDC-1/2021-22",block:"Somawarpet I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Kolar": [{project:"Kolar-WDC-1/2021-22",block:"Mulabagilu I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Kolar-WDC-2/2021-22",block:"Srinivasapura I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Kolar-WDC-3/2025-26",block:"Bangarpet IV",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Koppal": [{project:"Koppal-WDC-1/2021-22",block:"Yelaburga I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Koppal-WDC-2/2025-26",block:"Kustagi IV",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Mandya": [{project:"Mandya-WDC-1/2021-22",block:"Nagamangala I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Mandya-WDC-2/2022-23",block:"Mandya II",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Mandya-WDC-3/2024-25",block:"Malavalli III",amritNew:0,checkDamNew:6,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Mandya-WDC-4/2025-26",block:"Nagamangala IV",amritNew:1,checkDamNew:1,farmPondNew:2,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Mysuru": [{project:"Mysuru-WDC-1/2021-22",block:"H.D.Kote I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Mysuru-WDC-2/2021-22",block:"Periyapatna I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Mysore-WDC-3/2024-25",block:"Hunsur IV",amritNew:4,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Raichur": [{project:"Raichur-WDC-1/2021-22",block:"Raichur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Raichur-WDC-2/2021-22",block:"Sindhanur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Raichur-WDC-3/2025-26",block:"Manvi IV",amritNew:0,checkDamNew:20,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:5,othersAfforestation:0,awareness:9,springshedActivities:0,springsRejuvenated:0}],
+  "Ramanagara": [{project:"Ramanagara-WDC-1/2021-22",block:"Magadi I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Ramanagara-WDC-2/2022-23",block:"Channapatna II",amritNew:0,checkDamNew:1,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Shivamogga": [{project:"Shivamogga-WDC-1/2021-22",block:"Soraba I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Shivamogga-WDC-2/2021-22",block:"Shikaripura I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Tumkur": [{project:"Tumkur-WDC-1/2021-22",block:"Chikkanayakanahalli I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Tumkur-WDC-2/2021-22",block:"Pavagada I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Tumkur-WDC-2/2021-22",block:"Pavagada Model",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Tumkuru-WDC-3/2025-26",block:"Sira IV",amritNew:16,checkDamNew:4,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:217,othersAfforestation:0,awareness:38,springshedActivities:0,springsRejuvenated:0}],
+  "Udupi": [{project:"Udupi-WDC-1/2021-22",block:"Brahmavara I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Udupi-WDC-2/2021-22",block:"Karkala I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Udupi-WDC-3/2021-22",block:"Kundapura I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Uttarakannada": [{project:"Uttarakannada-WDC-1/2021-22",block:"Kumta I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Uttarakannada-WDC-2/2022-23",block:"Sirsi II",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+  "Yadgir": [{project:"Yadgir-WDC-1/2021-22",block:"Shorapura I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Yadgir-WDC-2/2021-22",block:"Shahapur I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Yadgir-WDC-3/2021-22",block:"Yadagir I",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0},{project:"Yadgir-WDC-4/2025-26",block:"Shahapur IV",amritNew:0,checkDamNew:0,farmPondNew:0,percolationNew:0,rainwaterRecharge:0,otherWaterNew:0,amritRenov:0,checkDamRenov:0,farmPondRenov:0,percolationRenov:0,groundwaterRecharge:0,otherTraditionalRestored:0,staggeredTrenches:0,benchTerracing:0,contourBunding:0,gradedBunding:0,otherWatershedActivities:0,areaPlantation:0,othersAfforestation:0,awareness:0,springshedActivities:0,springsRejuvenated:0}],
+};
+
+function pseudo(seed){ const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+function genNum(seed, min, max){ return min + Math.floor(pseudo(seed) * (max - min + 1)); }
+
+function genEntry(format, district, idx, seedBase){
+  const cols = {};
+  format.columns.forEach((c, ci) => {
+    const seed = seedBase * 97 + ci * 13 + idx * 7 + 1;
+    if (c.type === 'number') {
+      if (/pct/i.test(c.key)) cols[c.key] = genNum(seed, 20, 100);
+      else if (/lakh|amount|expend|released|sanctioned|utilized|balance|scsp|tsp|scp/i.test(c.key)) cols[c.key] = genNum(seed, 5, 480);
+      else cols[c.key] = genNum(seed, 0, 35);
+    } else {
+      if (c.key === 'project') cols[c.key] = district + '-WDC-' + (idx + 1) + '/2023-24';
+      else if (c.key === 'block') cols[c.key] = district + ' Block ' + (idx + 1);
+      else if (c.key === 'component') cols[c.key] = ['Watershed Works', 'Livelihood Activity', 'Capacity Building', 'Entry-Point Activity'][idx % 4];
+      else if (c.key === 'scheme') cols[c.key] = ['MGNREGA', 'RKVY', 'NRLM', 'PMKSY-PDMC (MI)'][idx % 4];
+      else if (c.key === 'indicator') cols[c.key] = ['Water bodies rejuvenated', 'Area treated under watershed', 'Farmers benefited'][idx % 3];
+      else if (c.key === 'activity') cols[c.key] = ['Farm bunding', 'Plantation / Afforestation', 'Check dam construction'][idx % 3];
+      else cols[c.key] = district + ' Entry ' + (idx + 1);
+    }
+  });
+  return Object.assign({ id: district + '-' + format.id + '-' + idx }, cols);
+}
+
+function seedSubmissions(){
+  const submissions = {};
+  DISTRICTS.forEach((d, di) => {
+    FORMATS.forEach((f, fi) => {
+      const key = 'p1__' + d + '__' + f.id;
+      const status = (di + fi) % 5 === 0 ? 'draft' : 'submitted';
+      const entryCount = 1 + ((di + fi) % 2);
+      const entries = [];
+      for (let i = 0; i < entryCount; i++) entries.push(genEntry(f, d, i, di * 11 + fi * 3 + 2));
+      submissions[key] = { status, entries };
+    });
+  });
+  // Authentic full R1 data exactly as filed for March 2026 (the reporting period covered by the source PDF), all 30 districts
+  DISTRICTS.forEach(d => {
+    const real = REAL_R1_DATA[d];
+    if (real) {
+      submissions['p1__' + d + '__r1'] = {
+        status: 'submitted',
+        entries: real.map((row, i) => Object.assign({ id: d + '-r1-real-' + i }, row)),
+      };
+    }
+  });
+  return submissions;
+}
+
+class Component extends DCLogic {
+  state = {
+    view: 'login',
+    loginRole: 'district',
+    loginDistrict: DISTRICTS[0],
+    role: null,
+    district: null,
+    activePeriodId: 'p1',
+    periods: [
+      { id: 'p1', label: 'March 2026', status: 'open' },
+    ],
+    selectedFormatId: null,
+    submissions: seedSubmissions(),
+    showAddForm: false,
+    entryDraft: {},
+    editingEntryId: null,
+    showCreatePeriod: false,
+    newPeriodLabel: '',
+    toast: null,
+  };
+
+  showToast(msg){
+    this.setState({ toast: msg });
+    setTimeout(() => this.setState(s => s.toast === msg ? { toast: null } : {}), 2600);
+  }
+
+  findFormat(id){ return FORMATS.find(f => f.id === id); }
+  findPeriod(id){ return this.state.periods.find(p => p.id === id); }
+  subKey(periodId, district, formatId){ return periodId + '__' + district + '__' + formatId; }
+  getSub(periodId, district, formatId){
+    return this.state.submissions[this.subKey(periodId, district, formatId)] || { status: 'not_started', entries: [] };
+  }
+
+  statusMeta(status){
+    if (status === 'submitted') return { label: 'Submitted', bg: 'oklch(90% 0.09 150)', fg: 'oklch(32% 0.1 150)' };
+    if (status === 'draft') return { label: 'Draft', bg: 'oklch(94% 0.09 85)', fg: 'oklch(38% 0.12 75)' };
+    return { label: 'Not Started', bg: 'oklch(94% 0.005 95)', fg: 'oklch(50% 0.01 95)' };
+  }
+
+  setRoleDistrict(){ this.setState({ loginRole: 'district' }); }
+  setRoleAdmin(){ this.setState({ loginRole: 'admin' }); }
+  onLoginDistrictChange(e){ this.setState({ loginDistrict: e.target.value }); }
+
+  doLogin(){
+    if (this.state.loginRole === 'admin') {
+      this.setState({ role: 'admin', view: 'admin-dash', activePeriodId: 'p1' });
+    } else {
+      this.setState({ role: 'district', district: this.state.loginDistrict, view: 'district-dash', activePeriodId: 'p1' });
+    }
+  }
+  logout(){ this.setState({ view: 'login', role: null, district: null, selectedFormatId: null, showAddForm: false }); }
+
+  onPeriodChange(e){ this.setState({ activePeriodId: e.target.value }); }
+
+  openFormat(formatId){
+    this.setState({ selectedFormatId: formatId, view: 'report-form', showAddForm: false, entryDraft: {}, editingEntryId: null });
+  }
+  backToDistrictDash(){ this.setState({ view: 'district-dash' }); }
+  backToAdminDash(){ this.setState({ view: 'admin-dash' }); }
+  openAdminReport(formatId){ this.setState({ selectedFormatId: formatId, view: 'admin-report' }); }
+
+  openAddForm(){ this.setState({ showAddForm: true, entryDraft: {}, editingEntryId: null }); }
+  cancelAddForm(){ this.setState({ showAddForm: false, entryDraft: {}, editingEntryId: null }); }
+  startEdit(entry){ this.setState({ showAddForm: true, entryDraft: Object.assign({}, entry), editingEntryId: entry.id }); }
+  updateDraftField(key, value){ this.setState(s => ({ entryDraft: Object.assign({}, s.entryDraft, { [key]: value }) })); }
+
+  saveEntryDraft(){
+    const format = this.findFormat(this.state.selectedFormatId);
+    const key = this.subKey(this.state.activePeriodId, this.state.district, this.state.selectedFormatId);
+    this.setState(s => {
+      const sub = s.submissions[key] || { status: 'not_started', entries: [] };
+      let entries;
+      if (s.editingEntryId) {
+        entries = sub.entries.map(e => e.id === s.editingEntryId ? Object.assign({}, s.entryDraft, { id: s.editingEntryId }) : e);
+      } else {
+        entries = sub.entries.concat([Object.assign({}, s.entryDraft, { id: s.district + '-' + format.id + '-' + Date.now() })]);
+      }
+      const status = sub.status === 'not_started' ? 'draft' : sub.status;
+      return {
+        submissions: Object.assign({}, s.submissions, { [key]: { status, entries } }),
+        showAddForm: false, entryDraft: {}, editingEntryId: null,
+      };
+    });
+  }
+
+  deleteEntry(entryId){
+    const key = this.subKey(this.state.activePeriodId, this.state.district, this.state.selectedFormatId);
+    this.setState(s => {
+      const sub = s.submissions[key] || { status: 'not_started', entries: [] };
+      const entries = sub.entries.filter(e => e.id !== entryId);
+      return { submissions: Object.assign({}, s.submissions, { [key]: { status: sub.status, entries } }) };
+    });
+  }
+
+  saveDraft(){
+    const key = this.subKey(this.state.activePeriodId, this.state.district, this.state.selectedFormatId);
+    this.setState(s => {
+      const sub = s.submissions[key] || { status: 'not_started', entries: [] };
+      const status = sub.entries.length > 0 && sub.status === 'not_started' ? 'draft' : sub.status;
+      return { submissions: Object.assign({}, s.submissions, { [key]: { status, entries: sub.entries } }) };
+    });
+    this.showToast('Draft saved');
+  }
+  submitReport(){
+    const key = this.subKey(this.state.activePeriodId, this.state.district, this.state.selectedFormatId);
+    this.setState(s => {
+      const sub = s.submissions[key] || { status: 'not_started', entries: [] };
+      return { submissions: Object.assign({}, s.submissions, { [key]: { status: 'submitted', entries: sub.entries } }) };
+    });
+    this.showToast('Report submitted to State Admin');
+  }
+
+  toggleCreatePeriod(){ this.setState(s => ({ showCreatePeriod: !s.showCreatePeriod })); }
+  onNewPeriodLabelChange(e){ this.setState({ newPeriodLabel: e.target.value }); }
+  createPeriod(){
+    const label = this.state.newPeriodLabel.trim();
+    if (!label) return;
+    const id = 'p' + (this.state.periods.length + 1) + '-' + Date.now();
+    this.setState(s => ({
+      periods: s.periods.concat([{ id, label, status: 'open' }]),
+      newPeriodLabel: '', showCreatePeriod: false, activePeriodId: id,
+    }));
+    this.showToast('Period "' + label + '" created and opened for districts');
+  }
+  togglePeriodLock(periodId){
+    this.setState(s => ({ periods: s.periods.map(p => p.id === periodId ? Object.assign({}, p, { status: p.status === 'open' ? 'locked' : 'open' }) : p) }));
+  }
+
+  sliceColor(i, n){
+    const hue = Math.round((i * 360) / n);
+    return 'oklch(64% 0.11 ' + hue + ')';
+  }
+
+  buildPieSlices(items){
+    const total = items.reduce((sum, it) => sum + it.value, 0) || 1;
+    let cursor = 0;
+    return items.map((it, i) => {
+      const pct = (it.value / total) * 100;
+      const start = cursor;
+      cursor += pct;
+      return { label: it.label, value: it.value, pct: Math.round(pct * 10) / 10, start, end: cursor, color: this.sliceColor(i, items.length) };
+    });
+  }
+
+  exportFormat(formatId, type){
+    const format = this.findFormat(formatId);
+    this.showToast('Exporting ' + format.title + ' as ' + type + '...');
+  }
+
+  exportDistrictAll(type){
+    this.showToast('Exporting all ' + this.state.district + ' submissions (' + this.findPeriod(this.state.activePeriodId).label + ') as ' + type + '...');
+  }
+
+  renderVals(){
+    const s = this.state;
+    const isLogin = s.view === 'login';
+    const isDistrictDash = s.view === 'district-dash';
+    const isReportForm = s.view === 'report-form';
+    const isAdminDash = s.view === 'admin-dash';
+    const isAdminReport = s.view === 'admin-report';
+
+    const activeBtnStyle = 'flex:1;padding:9px;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;background:white;color:oklch(24% 0.055 250);box-shadow:0 1px 3px rgba(0,0,0,0.1)';
+    const inactiveBtnStyle = 'flex:1;padding:9px;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:oklch(48% 0.01 95)';
+
+    const activePeriod = this.findPeriod(s.activePeriodId) || s.periods[0];
+    const periodLocked = activePeriod ? activePeriod.status === 'locked' : false;
+
+    let dashboardFormats = [];
+    if (isDistrictDash) {
+      dashboardFormats = FORMATS.map(f => {
+        const sub = this.getSub(s.activePeriodId, s.district, f.id);
+        const meta = this.statusMeta(sub.status);
+        const editable = !periodLocked && sub.status !== 'submitted';
+        return {
+          code: f.code, title: f.title,
+          statusLabel: meta.label, statusBg: meta.bg, statusFg: meta.fg,
+          entryCountLabel: sub.entries.length + (sub.entries.length === 1 ? ' entry recorded' : ' entries recorded'),
+          btnLabel: editable ? (sub.entries.length ? 'Continue Filling' : 'Fill Report') : 'View',
+          btnBg: editable ? 'oklch(28% 0.06 250)' : 'oklch(94% 0.006 95)',
+          btnFg: editable ? 'white' : 'oklch(35% 0.01 95)',
+          onOpen: () => this.openFormat(f.id),
+        };
+      });
+    }
+
+    let currentFormat = { code: '', title: '', columns: [] };
+    let currentEntries = [], noEntries = true, currentStatus = { label: '', bg: '', fg: '' }, canEdit = false, lockedNote = '';
+    let showAddForm = s.showAddForm, draftFields = [], addFormTitle = '', saveEntryLabel = 'Add Entry', showAddButtonRow = false, periodBannerDisplay = 'none';
+    if (isReportForm || isAdminReport) {
+      currentFormat = this.findFormat(s.selectedFormatId) || currentFormat;
+    }
+    const isR1 = s.selectedFormatId === 'r1';
+    const r1SubColumns = isR1 ? currentFormat.columns.slice(2).filter(c => c.key !== 'awareness').map(c => ({ label: c.label })) : [];
+    const r1GroupHeaderStyle = 'text-align:center;padding:8px 10px;font-weight:700;color:oklch(40% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);border-left:1px solid oklch(90% 0.006 95);font-size:11.5px;line-height:1.3';
+    const r1SubHeaderStyle = 'text-align:left;padding:9px 10px;font-weight:600;color:oklch(45% 0.01 95);border-bottom:1px solid oklch(88% 0.01 95);white-space:nowrap;font-size:11.5px';
+    if (isReportForm) {
+      const sub = this.getSub(s.activePeriodId, s.district, s.selectedFormatId);
+      const meta = this.statusMeta(sub.status);
+      currentStatus = meta;
+      canEdit = !periodLocked && sub.status !== 'submitted';
+      periodBannerDisplay = periodLocked ? 'flex' : 'none';
+      lockedNote = periodLocked
+        ? 'This reporting period is locked by the State Admin. Contact the admin to reopen it for edits.'
+        : 'This report has been submitted and is locked. Contact the State Admin to reopen it.';
+      currentEntries = sub.entries.map(entry => ({
+        cells: currentFormat.columns.map(c => ({ key: c.key, val: entry[c.key] })),
+        editBtnStyle: 'padding:5px 10px;border:1px solid oklch(85% 0.01 95);border-radius:5px;background:white;font-size:12px;font-weight:600;cursor:pointer;margin-right:6px',
+        deleteBtnStyle: 'padding:5px 10px;border:1px solid oklch(90% 0.08 25);border-radius:5px;background:white;color:oklch(45% 0.15 25);font-size:12px;font-weight:600;cursor:pointer',
+        onEdit: () => this.startEdit(entry),
+        onDelete: () => this.deleteEntry(entry.id),
+      }));
+      noEntries = currentEntries.length === 0;
+      showAddButtonRow = canEdit && !s.showAddForm;
+      addFormTitle = s.editingEntryId ? 'Edit Entry' : 'New Entry';
+      saveEntryLabel = s.editingEntryId ? 'Update Entry' : 'Add Entry';
+      draftFields = currentFormat.columns.map(c => ({
+        label: c.label, inputType: c.type === 'number' ? 'number' : 'text',
+        value: s.entryDraft[c.key] !== undefined ? s.entryDraft[c.key] : '',
+        onChange: (e) => this.updateDraftField(c.key, e.target.value),
+      }));
+    }
+
+    let matrixRows = [], formatCodes = [], periodPills = [], formatSummaryRows = [];
+    let tableWiseConic = 'none', districtWiseConic = 'none', tableWiseLegend = [], districtWiseLegend = [];
+    if (isAdminDash) {
+      formatCodes = FORMATS.map(f => ({ code: f.code, title: f.title, onClick: () => this.openAdminReport(f.id) }));
+      matrixRows = DISTRICTS.map(d => ({
+        district: d,
+        cells: FORMATS.map(f => {
+          const sub = this.getSub(s.activePeriodId, d, f.id);
+          const meta = this.statusMeta(sub.status);
+          return { bg: meta.bg, title: d + ' — ' + f.code + ': ' + meta.label, onClick: () => this.openAdminReport(f.id) };
+        }),
+      }));
+      periodPills = s.periods.map(p => ({
+        label: p.label,
+        statusLabel: p.status === 'open' ? 'Open' : 'Locked',
+        pillBg: p.status === 'open' ? 'oklch(93% 0.07 150)' : 'oklch(94% 0.006 95)',
+        pillBorder: p.status === 'open' ? 'oklch(80% 0.09 150)' : 'oklch(88% 0.01 95)',
+        pillFg: p.status === 'open' ? 'oklch(30% 0.09 150)' : 'oklch(45% 0.01 95)',
+        toggleLabel: p.status === 'open' ? 'Lock' : 'Reopen',
+        toggleBtnStyle: 'padding:4px 10px;border:1px solid rgba(0,0,0,0.15);border-radius:14px;background:white;font-size:11px;font-weight:700;cursor:pointer',
+        onToggle: () => this.togglePeriodLock(p.id),
+      }));
+      const tableWiseRaw = FORMATS.map(f => ({
+        label: f.code,
+        value: DISTRICTS.reduce((sum, d) => sum + this.getSub(s.activePeriodId, d, f.id).entries.length, 0),
+      })).sort((a, b) => b.value - a.value);
+      const districtWiseRaw = DISTRICTS.map(d => ({
+        label: d,
+        value: FORMATS.reduce((sum, f) => sum + this.getSub(s.activePeriodId, d, f.id).entries.length, 0),
+      })).sort((a, b) => b.value - a.value);
+      const tableWiseSlices = this.buildPieSlices(tableWiseRaw);
+      const districtWiseSlices = this.buildPieSlices(districtWiseRaw);
+      tableWiseConic = 'conic-gradient(' + tableWiseSlices.map(sl => sl.color + ' ' + sl.start + '% ' + sl.end + '%').join(', ') + ')';
+      districtWiseConic = 'conic-gradient(' + districtWiseSlices.map(sl => sl.color + ' ' + sl.start + '% ' + sl.end + '%').join(', ') + ')';
+      tableWiseLegend = tableWiseSlices.map(sl => ({ swatch: sl.color, label: sl.label, valueLabel: sl.value + ' entries · ' + sl.pct + '%' }));
+      districtWiseLegend = districtWiseSlices.map(sl => ({ swatch: sl.color, label: sl.label, valueLabel: sl.value + ' entries · ' + sl.pct + '%' }));
+      formatSummaryRows = FORMATS.map(f => {
+        const submittedCount = DISTRICTS.filter(d => this.getSub(s.activePeriodId, d, f.id).status === 'submitted').length;
+        return {
+          code: f.code, title: f.title,
+          submittedCountLabel: submittedCount + ' / ' + DISTRICTS.length + ' districts submitted',
+          onView: () => this.openAdminReport(f.id),
+          exportBtnStyle: 'padding:6px 12px;border:1px solid oklch(85% 0.01 95);border-radius:6px;background:white;font-size:12px;font-weight:600;cursor:pointer',
+          onExportExcel: () => this.exportFormat(f.id, 'Excel'),
+          onExportPdf: () => this.exportFormat(f.id, 'PDF'),
+        };
+      });
+    }
+
+    let consolidatedGroups = [], grandTotalCells = [], consolidatedFootnote = '';
+    if (isAdminReport) {
+      const numericCols = currentFormat.columns.filter(c => c.type === 'number');
+      const grandTotals = {};
+      numericCols.forEach(c => grandTotals[c.key] = 0);
+      let districtsWithData = 0;
+      consolidatedGroups = DISTRICTS.map(d => {
+        const sub = this.getSub(s.activePeriodId, d, s.selectedFormatId);
+        if (sub.entries.length === 0) return { rows: [] };
+        districtsWithData++;
+        const districtTotals = {};
+        numericCols.forEach(c => districtTotals[c.key] = 0);
+        const rows = sub.entries.map((entry, i) => {
+          numericCols.forEach(c => { const v = Number(entry[c.key]) || 0; grandTotals[c.key] += v; districtTotals[c.key] += v; });
+          return {
+            districtLabel: i === 0 ? d : '',
+            districtWeight: i === 0 ? '700' : '400',
+            rowBg: 'white',
+            cells: currentFormat.columns.map(c => ({ val: entry[c.key] })),
+          };
+        });
+        if (sub.entries.length > 1) {
+          rows.push({
+            districtLabel: 'Total',
+            districtWeight: '700',
+            rowBg: 'oklch(97% 0.006 95)',
+            cells: currentFormat.columns.map(c => ({ val: c.type === 'number' ? (Math.round(districtTotals[c.key] * 100) / 100) : '' })),
+          });
+        }
+        return { rows };
+      }).filter(g => g.rows.length);
+      grandTotalCells = currentFormat.columns.map(c => ({ val: c.type === 'number' ? (Math.round((grandTotals[c.key] || 0) * 100) / 100) : '—' }));
+      consolidatedFootnote = districtsWithData + ' of ' + DISTRICTS.length + ' districts have entries for ' + activePeriod.label + '.';
+    }
+
+    return {
+      isLogin, isDistrictDash, isReportForm, isAdminDash, isAdminReport, isR1, r1SubColumns, r1GroupHeaderStyle, r1SubHeaderStyle,
+      loginIsDistrict: s.loginRole === 'district',
+      roleBtnStyleDistrict: s.loginRole === 'district' ? activeBtnStyle : inactiveBtnStyle,
+      roleBtnStyleAdmin: s.loginRole === 'admin' ? activeBtnStyle : inactiveBtnStyle,
+      setRoleDistrict: () => this.setRoleDistrict(),
+      setRoleAdmin: () => this.setRoleAdmin(),
+      districtOptions: DISTRICTS,
+      loginDistrict: s.loginDistrict,
+      onLoginDistrictChange: (e) => this.onLoginDistrictChange(e),
+      usernamePlaceholder: s.loginRole === 'admin' ? 'state.admin' : (s.loginDistrict || '').toLowerCase().replace(/\s+/g, '.') + '.dwdo',
+      doLogin: () => this.doLogin(),
+      logout: () => this.logout(),
+      district: s.district,
+      periods: s.periods.map(p => ({ id: p.id, optionLabel: p.label + (p.status === 'locked' ? ' (Locked)' : '') })),
+      activePeriodId: s.activePeriodId,
+      activePeriodLabel: activePeriod ? activePeriod.label : '',
+      onPeriodChange: (e) => this.onPeriodChange(e),
+      periodBannerDisplay,
+      dashboardFormats,
+      currentFormat, currentEntries, noEntries, currentStatus, canEdit, cannotEdit: !canEdit, lockedNote,
+      backToDistrictDash: () => this.backToDistrictDash(),
+      backToAdminDash: () => this.backToAdminDash(),
+      showAddForm, draftFields, addFormTitle, saveEntryLabel, showAddButtonRow,
+      openAddForm: () => this.openAddForm(),
+      cancelAddForm: () => this.cancelAddForm(),
+      saveEntryDraft: () => this.saveEntryDraft(),
+      saveDraft: () => this.saveDraft(),
+      submitReport: () => this.submitReport(),
+      showCreatePeriod: s.showCreatePeriod,
+      createPeriodBtnLabel: s.showCreatePeriod ? 'Cancel' : '+ Create Period',
+      toggleCreatePeriod: () => this.toggleCreatePeriod(),
+      newPeriodLabel: s.newPeriodLabel,
+      onNewPeriodLabelChange: (e) => this.onNewPeriodLabelChange(e),
+      createPeriod: () => this.createPeriod(),
+      periodPills, matrixRows, formatCodes, formatSummaryRows,
+      tableWiseConic, districtWiseConic, tableWiseLegend, districtWiseLegend,
+      consolidatedGroups, grandTotalCells, consolidatedFootnote,
+      exportCurrentExcel: () => this.exportFormat(s.selectedFormatId, 'Excel'),
+      exportCurrentPdf: () => this.exportFormat(s.selectedFormatId, 'PDF'),
+      exportDistrictExcel: () => this.exportDistrictAll('Excel'),
+      exportDistrictPdf: () => this.exportDistrictAll('PDF'),
+      toast: s.toast,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
